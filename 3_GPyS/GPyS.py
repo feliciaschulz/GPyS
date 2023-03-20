@@ -18,7 +18,7 @@ st.markdown("<h1 style='text-align: center; '>GPyS</h1>", unsafe_allow_html=True
 st.markdown("<h3 style='text-align: center; '>Geographic Population Structure algorithm in Python</h3>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; '>Created by Felicia Schulz</p>", unsafe_allow_html=True)
 
-# add some description
+
 
 st.write("Please upload your input data and specify your N_best.")
 
@@ -26,6 +26,7 @@ data = st.file_uploader("Upload your data file.", type="csv", help="Use your GPS
 gen = st.file_uploader("Upload your gen.csv file.", type="csv", help="Use your GPS file" )
 geo = st.file_uploader("Upload your geo.csv file.", type="csv", help="Use your GPS file" )
 N_best = st.text_input("Please specify N_best (enter an integer)")
+# Error-proofing N_best
 if len(N_best) > 0:
     try:
         N_best = int(N_best)
@@ -104,8 +105,8 @@ def GPyS(outfile_name='my_GPyS_results.txt', N_best=10):
                 
                     if np.allclose(minE[n], E_vector[geo_populations_2], rtol=1.5e-8):
                         minG[n] = geo_populations_2
-                        # (?) minG has all of the indexes of the populations in GEO for which this
-                        #   specific sample has the 10 smallest genetic distances
+                        # minG has all of the indexes of the populations in GEO for which this
+                        # specific sample has the 10 smallest genetic distances
                         
             radius = E_vector[minG] # this has all of the 10 lowest genetic distance calculations
             best_ethnic = GEO.index[minG] # these are the 10 closest ethnic groups
@@ -129,8 +130,9 @@ def GPyS(outfile_name='my_GPyS_results.txt', N_best=10):
                 f.write(f"{group}\t{row+1}\t{training_data_subset.index[row]}\t{best_ethnic[0]}\t{GEO.iloc[minG[0], 0]+la1}\t{GEO.iloc[minG[0], 1]+lo1}\n")
 
 
-
+# check if all the input exists before running GPS function
 if data is not None and geo is not None and gen is not None and isinstance(N_best, int):
+    # loading spinner
     with st.spinner('Computing the GPS Analysis...'):
         try:
             GPyS(N_best=N_best)
@@ -147,7 +149,7 @@ if data is not None and geo is not None and gen is not None and isinstance(N_bes
 if finished == True:
     
     # if it exists, open the results file which shoudl be in the same folder
-    with open("my_GPS_results.txt", "r") as results:
+    with open("my_GPyS_results.txt", "r") as results:
         df_results = pd.read_csv(results, sep="\t", header=0) # load as pandas data frame
     st.dataframe(df_results, use_container_width=True)
     

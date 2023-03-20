@@ -53,7 +53,7 @@ Please make sure to only enter a number and no other symbols, otherwise it will 
 
 Once all of the input files and variables are entered, the GPS algorithm will run. This may take a while depending on how large the data is. With the sample data found in 01_OriginalCode/GPS_Data in this repository, this will take around thirty seconds.
 
-When the computation is finished, you will see a green message declaring that it is done. The output data file is automatically saved to your current working directory with the name "my_GPyS_results.txt". An example output file can also be found in 1_OriginalCode/GPS_Data and 3_GPyS.  Now, you can inspect your data in GPyS as well.
+When the computation is finished, you will see a green message declaring that it is done. The output data file is automatically saved to your current working directory with the name "my_GPS_results.txt". An example output file can also be found in    Now, you can inspect your data in GPyS as well.
 
 ### Output visualization
 Your output data file is displayed as a table and as an interactive map. You can enlarge both with the buttons on the top right of each.

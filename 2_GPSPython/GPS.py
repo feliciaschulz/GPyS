@@ -42,7 +42,7 @@ def GPS(outfile_name='my_GPS_results.txt', N_best=10, filename="data.csv"):
     
     # write header to output
     with open(outfile_name, "w") as f:
-        f.write("Population\tSample_no\tSample_id\tPrediction\tLat\tLon\n")
+        f.write("Population\tSample_no\tSample_id\tPrediction\tlat\tlon\n")
         
     # not sure what N_best is for
     N_best = min(N_best, len(GEO))
@@ -52,7 +52,7 @@ def GPS(outfile_name='my_GPS_results.txt', N_best=10, filename="data.csv"):
         training_data_subset = TRAINING_DATA[TRAINING_DATA["GROUP_ID"] == group] # training_data_subset=Y
         num_rows = len(training_data_subset) # num_rows=K -> number of rows in subset
         
-        # loop through rows
+        # loop through rows in your subset group data
         for row in range(num_rows): # row=a
             current_row_df = training_data_subset.iloc[row, :9].values # current_row_df=X
             E_vector = np.zeros(len(GEO)) # E_vector=E; zero vector with len=len(GEO)
@@ -112,7 +112,7 @@ def GPS(outfile_name='my_GPS_results.txt', N_best=10, filename="data.csv"):
             
             
             with open(outfile_name, "a") as f:
-                f.write(f"{group}\t{row+1}\t{training_data_subset.index[row]}\t{best_ethnic[0]}\t{GEO.iloc[minG[0], 0]+la1}\t{GEO.iloc[minG[0], 1]+lo1}")
+                f.write(f"{group}\t{row+1}\t{training_data_subset.index[row]}\t{best_ethnic[0]}\t{GEO.iloc[minG[0], 0]+la1}\t{GEO.iloc[minG[0], 1]+lo1}\n")
 
             
 GPS()

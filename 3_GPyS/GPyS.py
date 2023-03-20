@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Implementation of the R code GPS.r in Python
-
+GPyS algorithm and web application implementation
 Felicia Schulz
-
-GPS.r script and data (data.csv, gen.csv, geo.csv) acquired from:
-    https://github.com/homologus/GPS/tree/master/GPS-original-code
 """
 
+import streamlit as st
 import pandas as pd
 import scipy as sp
 import numpy as np
-import streamlit as st
 import plotly.express as px
 
+finished = False
+failed = False
+
 st.markdown("<h1 style='text-align: center; '>GPyS</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align: center; '>Geographic Population Structure algorithm in Python</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; '>Geographic Population Structure algorithm in Python</h3>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; '>Created by Felicia Schulz</p>", unsafe_allow_html=True)
 
 # add some description
 
@@ -24,24 +25,22 @@ st.write("Please upload your input data and specify your N_best.")
 data = st.file_uploader("Upload your data file.", type="csv", help="Use your GPS file" )
 gen = st.file_uploader("Upload your gen.csv file.", type="csv", help="Use your GPS file" )
 geo = st.file_uploader("Upload your geo.csv file.", type="csv", help="Use your GPS file" )
-#N_best = 0
-if data is not None:
-    data.seek(0)
-if gen is not None:
-    gen.seek(0)
-if geo is not None:
-    geo.seek(0)
-
-N_best = int(st.text_input("Please specify N_best (enter an integer)"))
+N_best = st.text_input("Please specify N_best (enter an integer)")
+if len(N_best) > 0:
+    try:
+        N_best = int(N_best)
+    except:
+        st.write("N_best must be a number. Please do not write any non-numerical characters. Reload the page to try again.")
+        N_best = None
 
 
-def GPS(outfile_name='my_GPS_results.txt', N_best=10):
+
+def GPyS(outfile_name='my_GPyS_results.txt', N_best=10):
     
     # load the data
     GEO = pd.read_csv(geo, header=0, index_col=0)
     GEN = pd.read_csv(gen, header=None, index_col=0)
     TRAINING_DATA = pd.read_csv(data, header=0, index_col=0)
-    print(GEO)
     
     # create distance matrices x and y from geo and gen
     y = sp.spatial.distance.pdist(GEO)
@@ -129,64 +128,68 @@ def GPS(outfile_name='my_GPS_results.txt', N_best=10):
             with open(outfile_name, "a") as f:
                 f.write(f"{group}\t{row+1}\t{training_data_subset.index[row]}\t{best_ethnic[0]}\t{GEO.iloc[minG[0], 0]+la1}\t{GEO.iloc[minG[0], 1]+lo1}\n")
 
-#if geo is not None and gen is not None and data is not None:
 
+
+if data is not None and geo is not None and gen is not None and isinstance(N_best, int):
+    with st.spinner('Computing the GPS Analysis...'):
+        try:
+            GPyS(N_best=N_best)
+        except:
+            st.write("Something went wrong. Please check if your input files are correct. Reload the page to try again.")
+            failed = True
+    if failed == False:
+        st.success('Done! Your results file has been saved to your current working directory.')
+        finished = True
+
+
+
+
+if finished == True:
     
-with st.spinner('Computing the GPS Analysis...'):
-    GPS()
-    GPS(N_best=N_best)
-st.success('Done! Your results file has been saved to your current working directory.')
+    # if it exists, open the results file which shoudl be in the same folder
+    with open("my_GPS_results.txt", "r") as results:
+        df_results = pd.read_csv(results, sep="\t", header=0) # load as pandas data frame
+    st.dataframe(df_results, use_container_width=True)
+    
+    
+    
+    # calculate the percentage of individuals predicted to come from their region of origin
+    total_wrong = 0
+    # loop through the results df
+    for index, row in df_results.iterrows():
+        pop = row["Population"]
+        predicted = row["Prediction"]
+        # the block of code below changes the predicted string so that they are comparable
+        predictedlist = predicted.split("_")
+        if len(predictedlist) <= 2:
+            predicted = predictedlist[0]
+        elif len(predictedlist) > 2:
+            predicted = ""
+            for word in range(len(predictedlist)-1):
+                predicted += "_"
+                predicted += predictedlist[word]
+            predicted = predicted[1:]
+        
+        # compare predicted and actual population origin
+        if pop != predicted:
+            total_wrong += 1
+            
+    # calculate percentage and print to screen
+    percentage_right = (index-total_wrong)/index
+    st.write("Percentage of individuals predicted to come from their region of origin:", percentage_right, "%")
 
-st.write("You can also see your data here.")
 
-
-"""
-with open("my_GPS_results.txt", "r") as results:
-    df_results = pd.read_csv(results, sep="\t", header=0)
+    # now remove na values for the mapping plot
     df_results = df_results.dropna()
-st.dataframe(df_results)
-
-
-total_wrong = 0
-for index, row in df_results.iterrows():
-    pop = row["Population"]
-    predicted = row["Prediction"]
-    predictedlist = predicted.split("_")
-    if len(predictedlist) <= 2:
-        predicted = predictedlist[0]
-    elif len(predictedlist) > 2:
-        predicted = ""
-        for word in range(len(predictedlist)-1):
-            predicted += "_"
-            predicted += predictedlist[word]
-        predicted = predicted[1:]
     
-    if pop != predicted:
-        total_wrong += 1
+    # plot the results using plotly
+    fig = px.scatter_geo(df_results,
+                        lat=df_results["lat"],
+                        lon=df_results["lon"],
+                        hover_name="Sample_id",
+                        hover_data=["Population", "Prediction"])
 
-percentage_right = (index-total_wrong)/index
-
-st.write("Percentage of individuals predicted to come from their region of origin:", percentage_right, "%")
-
-
-fig = px.scatter_geo(df_results,
-                    lat=df_results["lat"],
-                    lon=df_results["lon"],
-                    hover_name="Sample_id",
-                    hover_data=["Population", "Prediction"])
-
-st.plotly_chart(fig)
-            
-            
-"""
-
-
-
-
-
-
-    
-
+    st.plotly_chart(fig)
 
 
 

@@ -1,4 +1,4 @@
-# GPyS
+# GPyS (Population Genetics Project)
 
 GPyS is a python implementation and web application of the Geographic Population Structure (GPS) algorithm (Elhaik et al., 2014).  
 With GPS, individuals' ancestral population as well as latitude and longitude of origin can be predicted from genetic admixture data.
